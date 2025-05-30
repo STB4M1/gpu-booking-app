@@ -103,3 +103,24 @@ def confirm_cancel_reservation(
 
     return reservation
 
+
+# --- 自分の予約一覧を取得するエンドポイント ---
+@router.get("/me", response_model=List[schemas.Reservation])
+def get_my_reservations(db: Session = Depends(get_db)):
+    return db.query(models.Reservation).filter(models.Reservation.user_id == 1).all()
+
+# --- 自分の予約をキャンセルするエンドポイント ---
+@router.patch("/{reservation_id}/cancel", response_model=schemas.Reservation)
+def cancel_my_reservation(reservation_id: int, db: Session = Depends(get_db)):
+    reservation = db.query(models.Reservation).filter(
+        models.Reservation.id == reservation_id,
+        models.Reservation.user_id == 1  # 仮ユーザー
+    ).first()
+
+    if not reservation:
+        raise HTTPException(status_code=404, detail="予約が見つかりません")
+
+    reservation.status = "rejected"
+    db.commit()
+    db.refresh(reservation)
+    return reservation
