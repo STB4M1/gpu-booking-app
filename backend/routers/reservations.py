@@ -5,6 +5,7 @@ from typing import List
 from database import get_db
 import models, schemas
 from schemas import NaturalTextRequest, ReservationCreate
+from utils.llama_client import analyze_text_with_llama
 
 router = APIRouter()
 
@@ -14,13 +15,14 @@ def create_reservation_from_natural(
     request: NaturalTextRequest,
     db: Session = Depends(get_db)
 ):
-    # --- 仮構造化（後でLLaMA連携予定） ---
-    structured = {
-        "start_time": "2025-06-03T13:00:00",
-        "end_time": "2025-06-03T17:00:00",
-        "purpose": "ゼミの検証実験",
-        "priority_score": 0.85
-    }
+    # --- Colab（LLaMA構造化API）を呼び出す ---
+    structured = analyze_text_with_llama(request.text)
+
+    # --- 入力チェック（安全対策） ---
+    required_keys = {"start_time", "end_time", "purpose", "priority_score"}
+    if not required_keys.issubset(structured.keys()):
+        raise HTTPException(status_code=422, detail="構造化結果に必要なキーが足りません")
+
 
     # --- 日時の形式変換 ---
     try:
