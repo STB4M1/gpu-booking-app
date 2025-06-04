@@ -1,6 +1,13 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, Float, Text, Enum
+# 2. サードパーティライブラリ
+from sqlalchemy import (
+    Column, Integer, String, Boolean,
+    ForeignKey, DateTime, Float, Text, Enum
+)
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship
+# 3. ローカルモジュール（自作モジュール）
 from database import Base  # ※ database.pyでBaseを定義します（次ステップで）
+import models
 
 # ユーザーテーブル
 class User(Base):
@@ -39,6 +46,7 @@ class Reservation(Base):
         "rejected",
         "waiting",
         "pending_conflict",
+        "approved", 
         name="reservation_status"
     ),
     default="pending"

@@ -1,11 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+# 1. 標準ライブラリ 
 from datetime import datetime
 from typing import List
+# 2. サードパーティライブラリ
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+# 3. ローカルモジュール（自作モジュール）
 from database import get_db
-import models, schemas
+import models
+import schemas
 from schemas import NaturalTextRequest, ReservationCreate
 from utils.llama_client import analyze_text_with_llama
+
 
 router = APIRouter()
 
@@ -22,7 +27,6 @@ def create_reservation_from_natural(
     required_keys = {"start_time", "end_time", "purpose", "priority_score"}
     if not required_keys.issubset(structured.keys()):
         raise HTTPException(status_code=422, detail="構造化結果に必要なキーが足りません")
-
 
     # --- 日時の形式変換 ---
     try:
@@ -54,8 +58,15 @@ def create_reservation_from_natural(
             is_high_priority = False
             break
 
-    # --- ステータス決定 ---
-    status = "approved" if is_high_priority else "pending_conflict"
+    # --- ステータス決定 & 相手をpending_conflictに落とす ---
+    if is_high_priority:
+        # ✅ 既存の予約すべてを pending_conflict に落とす
+        for existing in overlapping:
+            existing.status = "pending_conflict"
+            db.add(existing)
+        status = "approved"
+    else:
+        status = "pending_conflict"
 
     # --- 予約登録 ---
     reservation = models.Reservation(
@@ -126,3 +137,25 @@ def cancel_my_reservation(reservation_id: int, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(reservation)
     return reservation
+
+@router.get("/test-colab")
+def test_colab_connection():
+    import requests
+
+    colab_url = "https://fbe7-35-231-243-8.ngrok-free.app/analyze"  # ← Colabの表示したngrok URLに置き換えて！
+    try:
+        res = requests.post(colab_url, json={"text": "WSLのFastAPIからColabの通信できてくれーーー！！！"})
+        return {
+            "status": res.status_code,
+            "response": res.json()
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+@router.post("/test-flutter")
+def receive_from_flutter(request: NaturalTextRequest):
+    print("📱 Flutterから受信:", request.text)
+    return {
+        "message": "FastAPIはちゃんとFlutterから受け取ったで！🎉",
+        "received_text": request.text
+    }

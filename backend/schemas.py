@@ -1,6 +1,8 @@
-from pydantic import BaseModel
+# 1. 標準ライブラリ 
 from typing import Optional
 from datetime import datetime
+# 2. サードパーティライブラリ
+from pydantic import BaseModel
 
 # ---------- ユーザー関連 ----------
 class UserBase(BaseModel):
