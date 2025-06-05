@@ -4,7 +4,6 @@ from sqlalchemy import (
     ForeignKey, DateTime, Float, Text, Enum
 )
 from sqlalchemy.orm import relationship
-from sqlalchemy.orm import relationship
 # 3. ローカルモジュール（自作モジュール）
 from database import Base  # ※ database.pyでBaseを定義します（次ステップで）
 import models
@@ -13,7 +12,8 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True)  # ← ここ修正！
+    username = Column(String, unique=True, index=True)
+    hashed_password = Column(String)  # ← 🔑 追加！
     is_admin = Column(Boolean, default=False)
 
     reservations = relationship("Reservation", back_populates="user")

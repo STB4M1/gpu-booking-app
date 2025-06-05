@@ -17,7 +17,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> login() async {
     final response = await http.post(
-      Uri.parse('https://4fca-182-167-109-2.ngrok-free.app/token'),
+      Uri.parse('https://2d61-182-167-109-2.ngrok-free.app/auth/token'),
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
@@ -58,9 +58,17 @@ class _LoginPageState extends State<LoginPage> {
             ElevatedButton(onPressed: login, child: const Text("ログイン")),
             const SizedBox(height: 20),
             Text(message),
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/register');
+              },
+              child: const Text("▶ 新規登録はこちら", style: TextStyle(fontSize: 16)),
+            ),
           ],
         ),
       ),
     );
   }
 }
+
+

@@ -1,22 +1,26 @@
-# 1. 標準ライブラリ 
+# 1. 標準ライブラリ
 from datetime import datetime
 from typing import List
 # 2. サードパーティライブラリ
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from passlib.context import CryptContext
 # 3. ローカルモジュール（自作モジュール）
 from database import get_db
-import models
-import schemas
-from schemas import NaturalTextRequest, ReservationCreate
-from schemas import ReservationResponse
+from models import Reservation, User as UserModel
+from schemas import (
+    NaturalTextRequest,
+    ReservationCreate,
+    ReservationResponse,
+    UserCreate,
+    User,  # 認証されたユーザー情報のスキーマ（Pydantic）
+)
+from auth import get_current_user_info as get_current_user  # 認証関数（auth.pyにある想定）
 from utils.llama_client import analyze_text_with_llama
-from fastapi import Depends
-from database import get_db  # DB接続用
-from models import Reservation  # 予約テーブル
-from models import User as UserModel  # ← これが「DBのUser」やから必須！
-from auth import get_current_user, User  # ← これは認証用User（Pydantic）
+import schemas
+import models
 
 router = APIRouter()
 
@@ -138,21 +142,14 @@ def confirm_cancel_reservation(
 #         "user": current_user.username,
 #         "reservations": []  # 👈 空リストをちゃんと返す！
 #     }
-@router.get("/me")
+@router.get("/me", response_model=List[ReservationResponse])  # ← 適切なPydanticモデルにしてね！
 def get_my_reservations(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # 1. ユーザーのDBオブジェクトを取得
     user_obj = db.query(UserModel).filter(UserModel.username == current_user.username).first()
-
-    # 2. そのユーザーに紐づく予約を取得
     reservations = db.query(Reservation).filter(Reservation.user == user_obj).all()
-
-    return {
-        "user": current_user.username,
-        "reservations": reservations
-    }
+    return reservations  # ✅ リストだけ返す
 
 # --- 自分の予約をキャンセルするエンドポイント ---
 @router.patch("/{reservation_id}/cancel", response_model=schemas.Reservation)
@@ -170,6 +167,40 @@ def cancel_my_reservation(reservation_id: int, db: Session = Depends(get_db)):
     db.refresh(reservation)
     return reservation
 
+@router.post("/register")
+def register(
+    user: UserCreate,
+    db: Session = Depends(get_db)
+):
+    if db.query(UserModel).filter(UserModel.username == user.username).first():
+        raise HTTPException(status_code=400, detail="ユーザー名は既に存在します")
+
+    hashed_pw = pwd_context.hash(user.password)
+
+    new_user = UserModel(
+        username=user.username,
+        hashed_password=hashed_pw,  # ✅ ここ修正！
+        is_admin=False
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return {"message": "登録成功"}
+
+@router.post("/token")
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+    user = db.query(UserModel).filter(UserModel.username == form_data.username).first()
+
+    if not user or not pwd_context.verify(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="ユーザー名またはパスワードが違います")
+
+    return {"access_token": user.username, "token_type": "bearer"}
+
+
 @router.get("/test-colab")
 def test_colab_connection():
     import requests
@@ -183,6 +214,7 @@ def test_colab_connection():
         }
     except Exception as e:
         return {"error": str(e)}
+
 
 @router.post("/test-flutter")
 def receive_from_flutter(request: NaturalTextRequest):

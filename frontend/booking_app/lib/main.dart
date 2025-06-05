@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/booking_page.dart';
 import 'screens/login_page.dart';
+import 'screens/register_page.dart';
 
 void main() {
   runApp(const BookingApp());
@@ -18,6 +19,7 @@ class BookingApp extends StatelessWidget {
       routes: {
         '/': (context) => const LoginPage(),        // ログイン画面
         '/booking': (context) => const BookingPage(), // ログイン後の予約画面
+        '/register': (context) => const RegisterPage(),
       },
     );
   }
