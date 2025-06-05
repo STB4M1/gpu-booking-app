@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'reservation_list_page.dart';
 import 'conflict_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BookingPage extends StatefulWidget {
   const BookingPage({super.key});
@@ -54,10 +55,25 @@ class _BookingPageState extends State<BookingPage> {
     }
   }
 
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token'); // ✅ トークン削除
+    Navigator.pushReplacementNamed(context, '/'); // ✅ ログイン画面へ戻る
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("GPU予約アプリ")),
+        appBar: AppBar(
+        title: const Text("GPU予約アプリ"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'ログアウト',
+            onPressed: logout,
+          ),
+        ],
+      ),
       body: SafeArea(
         child: GestureDetector(
           // 🧼 タップでキーボード閉じる
