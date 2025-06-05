@@ -46,7 +46,7 @@ class Reservation(BaseModel):
     priority_score: Optional[float] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # ---------- 衝突ログ ----------
 class ConflictLog(BaseModel):
@@ -68,3 +68,17 @@ class StructuredReservationResponse(BaseModel):
     end_time: str
     purpose: str
     priority_score: float
+
+class ReservationResponse(BaseModel):
+    id: int
+    user_id: int
+    server_id: int
+    start_time: datetime
+    end_time: datetime
+    purpose: str
+    status: str
+    priority_score: Optional[float] = None
+    received_text: Optional[str] = None  # 👈 ここを Optional にする！
+
+    class Config:
+        from_attributes = True

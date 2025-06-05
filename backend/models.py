@@ -9,15 +9,15 @@ from sqlalchemy.orm import relationship
 from database import Base  # ※ database.pyでBaseを定義します（次ステップで）
 import models
 
-# ユーザーテーブル
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True)
+    username = Column(String, unique=True, index=True)  # ← ここ修正！
     is_admin = Column(Boolean, default=False)
 
     reservations = relationship("Reservation", back_populates="user")
+
 
 # サーバーテーブル
 class Server(Base):

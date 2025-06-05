@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'reservation_list_page.dart';
+import 'conflict_page.dart';
 
 class BookingPage extends StatefulWidget {
   const BookingPage({super.key});
@@ -90,6 +91,17 @@ class _BookingPageState extends State<BookingPage> {
                   },
                   child: const Text("予約一覧を表示"),
                 ),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ConflictPage()),
+                    );
+                  },
+                  child: const Text("拒否確認待ち一覧を表示"),
+                ),
+
                 const SizedBox(height: 16),
                 Text(
                   _result,
@@ -106,3 +118,4 @@ class _BookingPageState extends State<BookingPage> {
     );
   }
 }
+

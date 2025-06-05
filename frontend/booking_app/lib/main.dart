@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/booking_page.dart';
+import 'screens/login_page.dart';
 
 void main() {
   runApp(const BookingApp());
@@ -13,7 +14,11 @@ class BookingApp extends StatelessWidget {
     return MaterialApp(
       title: 'GPU予約アプリ',
       theme: ThemeData(primarySwatch: Colors.deepPurple),
-      home: const BookingPage(),
+      initialRoute: '/', // ← 最初に表示する画面
+      routes: {
+        '/': (context) => const LoginPage(),        // ログイン画面
+        '/booking': (context) => const BookingPage(), // ログイン後の予約画面
+      },
     );
   }
 }
