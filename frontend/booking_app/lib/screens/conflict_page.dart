@@ -52,21 +52,35 @@ class _ConflictPageState extends State<ConflictPage> {
                 margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 elevation: 3,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: ListTile(
-                  title: Text("📌 ${r.purpose}"),
-                  subtitle: Text("🕒 ${r.startTime} 〜 ${r.endTime}"),
-                  trailing: ElevatedButton(
-                    onPressed: () async {
-                      await ApiService.confirmCancelReservation(r.id);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("予約を承諾（拒否）しました")),
-                      );
-                      _refreshList(); // 更新
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
-                    ),
-                    child: const Text("承諾"),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("📌 目的: ${r.purpose}", style: const TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      Text("🕒 ${r.startTime} ～ ${r.endTime}"),
+                      Text("🖥️ サーバー: ${r.serverName ?? '（未設定）'}"),
+                      Text("🔥 優先度: ${r.priorityScore?.toStringAsFixed(2) ?? 'N/A'}"),
+                      Text("📌 ステータス: ${r.status}"),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            await ApiService.confirmCancelReservation(r.id);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("予約を承諾（拒否）しました")),
+                            );
+                            _refreshList(); // 更新
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent,
+                          ),
+                          child: const Text("承諾", style: TextStyle(color: Colors.white)),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               );

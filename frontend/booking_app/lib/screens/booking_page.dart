@@ -32,6 +32,7 @@ class _BookingPageState extends State<BookingPage> {
 🎯 目的: ${data.purpose}  
 📌 ステータス: ${data.status}  
 🔥 優先度: ${data.priorityScore}
+🖥️ サーバー名: ${data.serverName} 
 ''';
       });
 

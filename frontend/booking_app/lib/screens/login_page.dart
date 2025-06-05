@@ -17,7 +17,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> login() async {
     final response = await http.post(
-      Uri.parse('https://b63b-182-167-109-2.ngrok-free.app/auth/token'),
+      Uri.parse('https://fb3d-182-167-109-2.ngrok-free.app/auth/token'),
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },

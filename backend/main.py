@@ -9,6 +9,22 @@ import models
 from routers import reservations
 from models import User as DBUser
 
+def init_servers(db: Session):
+    from models import Server  # 必ずここでimport（循環import防止）
+
+    # ここで使用可能なサーバーを定義（必要に応じて増やしてOK）
+    servers = [
+        ("A100", 4),
+        ("V100", 2),
+        ("RTX3090", 1),
+    ]
+
+    for name, count in servers:
+        if not db.query(Server).filter(Server.name == name).first():
+            db.add(Server(name=name, gpu_count=count))
+
+    db.commit()
+
 app = FastAPI(
     title="GPU予約API",
     description="自然言語によるGPU予約とAIによる優先度判定のためのAPI",
@@ -24,6 +40,11 @@ app.add_middleware(
 )
 
 Base.metadata.create_all(bind=engine)
+
+# 🌟 サーバー初期化（重複追加されない）
+with Session(bind=engine) as db:
+    init_servers(db)
+
 
 # 🔽 ルーター登録
 app.include_router(auth_router, prefix="/auth")  # ← これ追加するだけ！

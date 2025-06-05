@@ -5,6 +5,7 @@ class Reservation {
   final String purpose;
   final String status;
   final double priorityScore;
+  final String? serverName;
 
   Reservation({
     required this.id,
@@ -13,6 +14,7 @@ class Reservation {
     required this.purpose,
     required this.status,
     required this.priorityScore,
+    this.serverName,
   });
 
   factory Reservation.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class Reservation {
       purpose: json['purpose'],
       status: json['status'],
       priorityScore: json['priority_score'].toDouble(),
+      serverName: json['server_name'],
     );
   }
 }

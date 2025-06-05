@@ -43,9 +43,18 @@ def create_reservation_from_natural(
         start_dt = datetime.fromisoformat(structured["start_time"])
         end_dt = datetime.fromisoformat(structured["end_time"])
 
+        # サーバー名からIDを取得
+        server_name = structured.get("server_name")
+        if not server_name:
+            raise HTTPException(status_code=422, detail="構造化結果にserver_nameが含まれていません")
+
+        server = db.query(models.Server).filter(models.Server.name == server_name).first()
+        if not server:
+            raise HTTPException(status_code=404, detail=f"サーバー '{server_name}' が見つかりません")
+
         # 4. バリデーション付き入力データ生成
         reservation_in = ReservationCreate(
-            server_id=1,
+            server_id=server.id,
             start_time=start_dt,
             end_time=end_dt,
             purpose=structured["purpose"]
@@ -90,7 +99,7 @@ def create_reservation_from_natural(
         # 9. レスポンス生成（予約情報＋自然文）
         response_obj = schemas.ReservationResponse.from_orm(reservation)
         response_obj.received_text = structured.get("received_text", request.text)
-
+        response_obj.server_name = reservation.server.name
         print("✅ レスポンス内容:", response_obj)
         return response_obj
 
@@ -100,13 +109,16 @@ def create_reservation_from_natural(
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 # === 保留中予約一覧取得 ===
-@router.get("/conflicts", response_model=List[schemas.Reservation])
-def get_pending_conflicts(db: Session = Depends(get_db)):
-    reservations = db.query(models.Reservation).filter(
-        models.Reservation.user_id == 1,
-        models.Reservation.status == "pending_conflict"
-    ).all()
-    return reservations
+@router.get("/conflicts", response_model=List[schemas.ReservationResponse])
+def get_conflicting_reservations(db: Session = Depends(get_db)):
+    reservations = db.query(Reservation).filter(Reservation.status == "pending_conflict").all()
+
+    result = []
+    for r in reservations:
+        res_dict = schemas.ReservationResponse.from_orm(r).dict()
+        res_dict["server_name"] = r.server.name if r.server else None
+        result.append(schemas.ReservationResponse(**res_dict))
+    return result
 
 @router.patch("/{reservation_id}/confirm-cancel", response_model=schemas.Reservation)
 def confirm_cancel_reservation(
@@ -142,14 +154,28 @@ def confirm_cancel_reservation(
 #         "user": current_user.username,
 #         "reservations": []  # 👈 空リストをちゃんと返す！
 #     }
-@router.get("/me", response_model=List[ReservationResponse])  # ← 適切なPydanticモデルにしてね！
+@router.get("/me", response_model=List[schemas.ReservationResponse])
 def get_my_reservations(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     user_obj = db.query(UserModel).filter(UserModel.username == current_user.username).first()
     reservations = db.query(Reservation).filter(Reservation.user == user_obj).all()
-    return reservations  # ✅ リストだけ返す
+
+    # 🧠 ← ここで server_name を含めて整形
+    response = []
+    for r in reservations:
+        response.append(schemas.ReservationResponse(
+            id=r.id,
+            start_time=r.start_time,
+            end_time=r.end_time,
+            purpose=r.purpose,
+            priority_score=r.priority_score or 0.0,
+            status=r.status,
+            server_name=r.server.name if r.server else "(未設定)",
+            received_text=None  # 任意
+        ))
+    return response
 
 # --- 自分の予約をキャンセルするエンドポイント ---
 @router.patch("/{reservation_id}/cancel", response_model=schemas.Reservation)
@@ -179,7 +205,7 @@ def register(
 
     new_user = UserModel(
         username=user.username,
-        hashed_password=hashed_pw,  # ✅ ここ修正！
+        hashed_password=hashed_pw,
         is_admin=False
     )
     db.add(new_user)

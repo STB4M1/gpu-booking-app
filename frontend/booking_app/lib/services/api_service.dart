@@ -4,7 +4,7 @@ import '../models/reservation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const baseUrl = "https://b63b-182-167-109-2.ngrok-free.app/api/reservations";
+  static const baseUrl = "https://fb3d-182-167-109-2.ngrok-free.app/api/reservations";
 
   // 🔐 ヘッダーにトークンを自動で追加
   static Future<Map<String, String>> _getAuthHeaders() async {

@@ -71,17 +71,17 @@ class StructuredReservationResponse(BaseModel):
 
 class ReservationResponse(BaseModel):
     id: int
-    user_id: int
-    server_id: int
     start_time: datetime
     end_time: datetime
     purpose: str
+    priority_score: float
     status: str
-    priority_score: Optional[float] = None
-    received_text: Optional[str] = None  # 👈 ここを Optional にする！
+    received_text: str | None = None
+    server_name: str | None = None
 
     class Config:
-        from_attributes = True
+        from_attributes = True  # Pydantic v2対応（旧: orm_mode）
+
 
 class UserCreate(BaseModel):
     username: str

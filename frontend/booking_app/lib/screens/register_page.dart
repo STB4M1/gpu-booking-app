@@ -16,7 +16,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
 Future<void> register() async {
   final response = await http.post(
-    Uri.parse('https://b63b-182-167-109-2.ngrok-free.app/auth/register'),
+    Uri.parse('https://fb3d-182-167-109-2.ngrok-free.app/auth/register'),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({
       'username': usernameController.text,

@@ -37,6 +37,7 @@ class ReservationListPage extends StatelessWidget {
                       Text("🎯 目的: ${r.purpose}"),
                       Text("📌 ステータス: ${r.status}"),
                       Text("🔥 優先度: ${r.priorityScore}"),
+                      Text("🖥️ サーバー: ${r.serverName ?? "（未設定）"}"),
                     ],
                   ),
                 ),
