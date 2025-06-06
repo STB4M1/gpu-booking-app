@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -16,7 +17,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
 Future<void> register() async {
   final response = await http.post(
-    Uri.parse('https://bdf2-182-167-109-2.ngrok-free.app/auth/register'),
+    Uri.parse('${dotenv.env['NGROK_API_URL']}/auth/register'),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({
       'username': usernameController.text,

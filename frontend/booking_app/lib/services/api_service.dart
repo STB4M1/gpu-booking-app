@@ -3,9 +3,10 @@ import 'package:http/http.dart' as http;
 import '../models/reservation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'auth_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiService {
-  static const baseUrl = "https://bdf2-182-167-109-2.ngrok-free.app/api/reservations";
+  static final baseUrl = '${dotenv.env['NGROK_API_URL']}/api/reservations';
 
   // 🔐 ヘッダーにトークンを自動で追加
   static Future<Map<String, String>> _getAuthHeaders() async {
@@ -30,7 +31,7 @@ class ApiService {
       url,
       headers: headers,
       body: jsonEncode({"text": text}),
-    ).timeout(const Duration(seconds: 5));
+    ).timeout(const Duration(seconds: 600));
 
     if (response.statusCode == 200) {
       return Reservation.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));

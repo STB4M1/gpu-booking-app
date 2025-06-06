@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -17,7 +18,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> login() async {
     final response = await http.post(
-      Uri.parse('https://bdf2-182-167-109-2.ngrok-free.app/auth/token'),
+      Uri.parse('${dotenv.env['NGROK_API_URL']}/auth/token'),
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
