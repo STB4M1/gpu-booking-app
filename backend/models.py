@@ -42,11 +42,11 @@ class Reservation(Base):
     status = Column(
     Enum(
         "confirmed",
-        "pending",
         "rejected",
         "waiting",
         "pending_conflict",
         "approved", 
+        "cancelled",
         name="reservation_status"
     ),
     default="pending"

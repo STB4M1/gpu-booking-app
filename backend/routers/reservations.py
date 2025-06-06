@@ -28,6 +28,7 @@ router = APIRouter()
 @router.post("/natural", response_model=schemas.ReservationResponse)
 def create_reservation_from_natural(
     request: NaturalTextRequest,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     try:
@@ -65,8 +66,9 @@ def create_reservation_from_natural(
             models.Reservation.server_id == reservation_in.server_id,
             models.Reservation.end_time > reservation_in.start_time,
             models.Reservation.start_time < reservation_in.end_time,
-            models.Reservation.status.in_(["approved", "pending"])
+            models.Reservation.status == "approved"
         ).all()
+
 
         # 6. 優先度比較
         is_high_priority = True
@@ -84,7 +86,7 @@ def create_reservation_from_natural(
 
         # 8. DBに新しい予約を追加
         reservation = models.Reservation(
-            user_id=1,  # 仮ユーザー（認証導入時に差し替え可）
+            user_id=current_user.id,
             server_id=reservation_in.server_id,
             start_time=reservation_in.start_time,
             end_time=reservation_in.end_time,
@@ -213,6 +215,25 @@ def register(
     db.refresh(new_user)
 
     return {"message": "登録成功"}
+
+@router.delete("/{reservation_id}", response_model=schemas.ReservationResponse)
+def cancel_reservation(
+    reservation_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    reservation = db.query(Reservation).filter(Reservation.id == reservation_id).first()
+
+    if not reservation:
+        raise HTTPException(status_code=404, detail="予約が見つかりません")
+
+    if reservation.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="自分の予約しかキャンセルできません")
+
+    reservation.status = "cancelled"
+    db.commit()
+    db.refresh(reservation)
+    return reservation
 
 @router.post("/token")
 def login(

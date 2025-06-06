@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/reservation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'auth_service.dart';
 
 class ApiService {
-  static const baseUrl = "https://fb3d-182-167-109-2.ngrok-free.app/api/reservations";
+  static const baseUrl = "https://bdf2-182-167-109-2.ngrok-free.app/api/reservations";
 
   // 🔐 ヘッダーにトークンを自動で追加
   static Future<Map<String, String>> _getAuthHeaders() async {
@@ -52,6 +53,21 @@ class ApiService {
       return jsonDecode(utf8.decode(response.bodyBytes));
     } else {
       throw Exception("ステータスコード: ${response.statusCode}");
+    }
+  }
+
+  static Future<void> cancelReservation(int reservationId) async {
+    final token = await AuthService.getToken(); // SharedPreferencesから取得する処理がある前提
+    final response = await http.delete(
+      Uri.parse('$baseUrl/$reservationId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("キャンセルに失敗しました: ${response.body}");
     }
   }
 
