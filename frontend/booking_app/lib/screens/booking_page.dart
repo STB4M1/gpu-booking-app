@@ -51,7 +51,7 @@ class _BookingPageState extends State<BookingPage> {
 
     } catch (e) {
       setState(() {
-        _result = "❌ 通信エラー: $e";
+        _result = "❌ 通信エラー: ${e.toString().replaceFirst('Exception: ', '')}";
       });
     }
   }

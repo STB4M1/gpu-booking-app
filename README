@@ -1,0 +1,60 @@
+1. スマホのワイヤレスデバッグ ON
+✅ スマホ側の「開発者モード」→「ワイヤレスデバッグ」をONにする
+
+2. adbペアリング
+$ adb pair 192.168.XXX.YYY:AAAAA
+Enter pairing code: ZZZZZZ
+✅ Successfully paired to ~ と表⽰されればOK．
+
+adb connect 192.168.XXX.YYY:BBBBB
+✅connected to ~ と表⽰されればOK．
+
+そして，flutter deviceを実行すれば候補にデバイスが入る
+
+
+3. Colabを実行（LLaMA+Flask+ngrok）
+•	🌍 Colab構造化API URL: が表示される（例：https://abcd1234.ngrok-free.app/analyze）
+
+4. WSLの gpu_booking_app/.env に ColabのURL を貼り付ける
+LLAMA_API_URL=https://abcd1234.ngrok-free.app/analyze
+✅ .env は FastAPI から読まれる。
+
+5. WSLの backend/ で FastAPI を実行
+cd backend/
+uvicorn main:app --host 0.0.0.0 --port 8000 –reload --log-level debug
+✅ 0.0.0.0 が大事！
+
+6. 別WSLターミナルで ngrok 起動
+ngrok http 8000
+➡️ 表示された URL（例：https://efgh5678.ngrok-free.app）をメモ
+
+7. Flutterの gpu_booking_app/frontend/.env にngrokのURLを貼る
+NGROK_API_URL=https://b4f1-182-167-109-2.ngrok-free.app
+✅ POST先が FastAPI 経由になる！
+
+8. Flutterアプリ実行
+cd frontend/booking_app
+flutter devices            # IDを確認
+flutter run -d [ID]        # 実機にデプロイ
+
+
+9. アプリから自然文送信 → 結果を確認
+•	例：「6/1の19時から21時まで、研究でGPUを使いたい」
+•	✅ Flutter上に start_time, end_time, purpose, priority_score などが表示されれば成功！
+
+FlutterからFastAPI経由でColabに通信が届いていれば，Colab上のcontent/flask_log.txtに予約文が出てくる．
+
+✅ 補足のヒント（あると便利）
+補足項目	内容
+🔄 .env を読み込めてないとき	FastAPI起動時に環境変数を確認できるよう print(os.getenv("LLAMA_API_URL")) を入れると安心
+🔐 Colabでモデルロード失敗対策	pipe(prompt) を try...except で囲むとエラー原因特定しやすい
+🧪 GET /ping をFastAPIに用意	Flutterから通信テストしやすくなる（接続確認用）
+
+✅ 最終確認：ゴールの定義
+項目	OKなら
+Flutter入力できる	✅
+FastAPIに送られている	✅
+FastAPI → Colabに到達している	✅
+ColabがJSON返してる	✅
+FlutterにJSONが表示される	✅🎉 完成！！
+
